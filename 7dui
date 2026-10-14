@@ -47,10 +47,13 @@ local espFolder = Instance.new("Folder")
 espFolder.Name = "NexvyrESPFolder"
 espFolder.Parent = screenGui
 
+-- ===================== BOTONES FLOTANTES =====================
 _G.EditFloatingButtons = false
 _G.FloatingBtnWidth = 150
 _G.FloatingBtnHeight = 45
 _G.FloatingBtnTransparency = 0.15
+local createFloatingBtn
+do
 local floatingButtonsList = {}
 
 local function makeDraggable(guiObject, objectToMove)
@@ -73,7 +76,7 @@ local function makeDraggable(guiObject, objectToMove)
     end)
 end
 
-local function createFloatingBtn(name, startPos, internalId)
+function createFloatingBtn(name, startPos, internalId)
     local btn = Instance.new("TextButton")
     btn.Name = internalId or name
     btn.Size = UDim2.new(0, _G.FloatingBtnWidth, 0, _G.FloatingBtnHeight)
@@ -117,8 +120,11 @@ local function createFloatingBtn(name, startPos, internalId)
     table.insert(floatingButtonsList, btn)
     return btn, function() return validClick end, stroke
 end
+end
 
-local WindUI
+-- ===================== WINDUI =====================
+local WindUI, Tabs
+do
 local _version = "1.6.66"
 local uiFileName = "WindUI_Cache_v" .. _version .. ".txt"
 local timeFileName = "WindUI_Cache_v" .. _version .. "_Time.txt"
@@ -169,7 +175,7 @@ WindUI:SetTheme("Crimson")
 local MainSection = Window:Section({ Title = "Funciones Principales", Opened = true })
 local TrollSection = Window:Section({ Title = "Extra", Opened = true })
 
-local Tabs = {
+Tabs = {
     ESP = MainSection:Tab({ Title = "ESP", Icon = "scan-eye" }),
     Sheriff = MainSection:Tab({ Title = "Sheriff", Icon = "crosshair" }),
     Murderer = MainSection:Tab({ Title = "Murderer", Icon = "skull" }),
@@ -179,6 +185,7 @@ local Tabs = {
     Teleport = MainSection:Tab({ Title = "Teleport", Icon = "map-pin" }),
     Troll = TrollSection:Tab({ Title = "Troll", Icon = "ghost" })
 }
+end
 
 local function sep(tab)
     tab:Space()
@@ -188,6 +195,7 @@ end
 
 local UIElements = {}
 
+-- ===================== UTILIDADES =====================
 local function findMurderer()
     for _, i in ipairs(Players:GetPlayers()) do
         if i:FindFirstChild("Backpack") and i.Backpack:FindFirstChild("Knife") then return i end
@@ -234,6 +242,8 @@ local function isPlayerInLobby(hrp)
     return distToLobby < distToMap
 end
 
+-- ===================== ESP =====================
+do
 local activeESPs = {}
 local espNamesEnabled = false
 local espDistanceEnabled = false
@@ -467,8 +477,10 @@ Tabs.ESP:Colorpicker({ Title = "Color Inocentes", Default = espColors.Innocent, 
 Tabs.ESP:Colorpicker({ Title = "Color Sheriff", Default = espColors.Sheriff, Callback = function(c) espColors.Sheriff = c end })
 Tabs.ESP:Colorpicker({ Title = "Color Murderer", Default = espColors.Murderer, Callback = function(c) espColors.Murderer = c end })
 
+end
 
 -- ===================== SHERIFF =====================
+do
 Tabs.Sheriff:Section({ Title = "Aimlock", Icon = "lock" })
 local aimlockActiveLoop = false
 local aimlockConCandadoHabilitado = false
@@ -683,8 +695,10 @@ Tabs.Sheriff:Section({ Title = "Botones Flotantes", Icon = "mouse-pointer-click"
 Tabs.Sheriff:Toggle({ Title = "Mostrar Botón Disparo", Value = false, Callback = function(s) aiFloatingShoot.Visible = s end })
 Tabs.Sheriff:Toggle({ Title = "Mostrar Botón AutoShoot", Value = false, Callback = function(s) aiFloatingToggle.Visible = s end })
 Tabs.Sheriff:Toggle({ Title = "Mover Botones Flotantes", Value = false, Callback = function(state) _G.EditFloatingButtons = state end })
+end
 
 -- ===================== MURDERER =====================
+do
 Tabs.Murderer:Section({ Title = "Ataques Rápidos", Icon = "swords" })
 Tabs.Murderer:Toggle({ Title = "Auto Stab", Value = false, Callback = function(state) autoStabEnabled = state end })
 
@@ -722,7 +736,10 @@ sep(Tabs.Murderer)
 Tabs.Murderer:Section({ Title = "Kill Aura", Icon = "radar" })
 Tabs.Murderer:Toggle({ Title = "Kill Aura", Value = false, Callback = function(state) killAuraEnabled = state end })
 Tabs.Murderer:Slider({ Title = "Radio del Aura", Step = 1, Value = {Min = 10, Max = 100, Default = 25}, Callback = function(Value) killAuraRadius = Value end })
+end
 
+-- ===================== AUTOFARM =====================
+do
 Tabs.AutoFarm:Section({ Title = "Monedas", Icon = "coins" })
 local farmSpeed = 28
 local currentTargetCoin = nil
@@ -834,7 +851,10 @@ task.spawn(function()
         end)
     end
 end)
+end
 
+-- ===================== TELEPORT =====================
+do
 Tabs.Teleport:Section({ Title = "Ubicaciones", Icon = "map-pin" })
 Tabs.Teleport:Button({ Title = "Ir al Lobby", Callback = function()
     local char = player.Character
@@ -881,7 +901,10 @@ Tabs.Teleport:Button({ Title = "Ir al Jugador", Callback = function()
         player.Character.HumanoidRootPart.CFrame = tP.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
     end
 end })
+end
 
+-- ===================== MOVIMIENTO =====================
+do
 Tabs.Movimiento:Section({ Title = "Vuelo", Icon = "plane" })
 local flying = false
 local flySpeed = 50
@@ -1071,7 +1094,10 @@ player.CharacterAdded:Connect(function(newChar)
     if flying then task.delay(0.25, function() inyectarVuelo(newChar) end) end
     if walkSpeedEnabled then task.spawn(function() local hum = newChar:WaitForChild("Humanoid", 3); if hum then hum.WalkSpeed = customWalkSpeed end end) end
 end)
+end
 
+-- ===================== TROLL =====================
+do
 Tabs.Troll:Section({ Title = "Fling", Icon = "tornado" })
 local currentFlingTarget = nil
 local flingLoop = nil
@@ -1167,7 +1193,10 @@ Tabs.Troll:Toggle({ Title = "Anti-Fling", Value = false, Callback = function(sta
         end)
     elseif antiFlingConnection then antiFlingConnection:Disconnect(); antiFlingConnection = nil end
 end })
+end
 
+-- ===================== INVISIBLE (de NEXVYRHUB DUELS) =====================
+do
     Tabs.Invisible:Section({ Title = "Invisible", Icon = "eye-off" })
 
     local InvisibilityActive = false
